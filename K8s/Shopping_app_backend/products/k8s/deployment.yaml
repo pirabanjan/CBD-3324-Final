@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: products
+  template:
+    metadata:
+      labels:
+        app: products
+    spec:
+      containers:
+        - name: customer
+          image: products:main # Replace with your image and tag
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8002
+          # Add volume mounts and resources as needed
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "200m"  # Adjust the CPU limit as needed
+            requests:
+              cpu: "100m"  # Adjust the CPU request as needed
+      # imagePullSecrets:
+      #   - name: regcred-products

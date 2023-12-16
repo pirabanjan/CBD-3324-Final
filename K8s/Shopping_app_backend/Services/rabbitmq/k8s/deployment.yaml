@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3-management
+        ports:
+          - name: http
+            protocol: TCP
+            containerPort: 15672
+          - name: amqp
+            protocol: TCP
+            containerPort: 5672
+        volumeMounts:
+        - name: rabbitmq-data-persistent-storage
+          mountPath: /var/lib/rabbitmq/
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "200m"  # Adjust the CPU limit as needed
+          requests:
+            cpu: "100m"  # Adjust the CPU request as needed
+      volumes:
+      - name: rabbitmq-data-persistent-storage
+        hostPath:
+          path: /data
+          type: DirectoryOrCreate

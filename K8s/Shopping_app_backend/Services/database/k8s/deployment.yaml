@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nosql-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nosql-db
+  template:
+    metadata:
+      labels:
+        app: nosql-db
+    spec:
+        containers:
+          - name: nosql-db
+            image: mongo
+            ports:
+              - containerPort: 27017
+            volumeMounts:
+              - name: nosql-db-data
+                mountPath: /data/db
+            resources:
+              limits:
+                memory: "512Mi"
+                cpu: "200m"  # Adjust the CPU limit as needed
+              requests:
+                cpu: "100m"  # Adjust the CPU request as needed
+        volumes:
+          - name: nosql-db-data
+            hostPath:
+              path: /mnt/d/Lambton/3rd-Semester/DevOps/Term-Project/App/Shopping_app_backend/database/db
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: mongodb
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: mongodb
+#   template:
+#     metadata:
+#       labels:
+#         app: mongodb
+#     spec:
+#       containers:
+#       - name: mongodb
+#         image: mongo:latest
+#         ports:
+#         - containerPort: 27017
+#         resources:
+#           limits:
+#             memory: "512Mi"
+#             cpu: "200m"  # Adjust the CPU limit as needed
+#           requests:
+#             cpu: "100m"  # Adjust the CPU request as needed
+#         env:
+#         - name: MONGO_INITDB_ROOT_USERNAME
+#           valueFrom:
+#             secretKeyRef:
+#               name: mongodb-secret
+#               key: username
+#         - name: MONGO_INITDB_ROOT_PASSWORD
+#           valueFrom:
+#             secretKeyRef:
+#               name: mongodb-secret
+#               key: password

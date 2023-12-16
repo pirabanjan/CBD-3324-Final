@@ -1,0 +1,76 @@
+stages:
+  - Code Test
+  - Docker Build
+  - test
+  - Release-dev
+  - Dev-Deploy
+  - DAST Scan
+  - Tests-dev
+  - Notification-dev
+  - Release-stg
+  - Stg-Deploy
+  - Tests-stg
+  - Notification-stg
+  - Release-prod
+  - Prod-Deploy
+  - Tests-prod
+  - Notification-prod
+
+
+# SonarQube-Scan:
+#   stage: Code Test
+#   tags:
+#     - dostream
+#   image: 
+#     name: sonarsource/sonar-scanner-cli:latest
+#     entrypoint: [""]
+#   variables:
+#     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+#     GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+#   cache:
+#     key: "${CI_JOB_NAME}"
+#     paths:
+#       - .sonar/cache
+#   script: 
+#     - sonar-scanner -X -Dsonar.projectKey=dostream1_application_backend_shopping_AYwFq_kw8_xLI5FSFScy -Dproject.settings=./sonarqube/sonar-project.properties -Dsonar.sources=./ -Dsonar.host.url="$SONAR_HOST_URL"  -Dsonar.token="$SONAR_TOKEN"
+#   allow_failure: true
+
+build Image:
+  stage: Docker Build
+  tags:
+   - dostream
+  services:
+  - name: docker:dind
+  image: docker:latest
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - VERSION=$(cat version.txt)
+    - export IMAGE_NAME="$CI_REGISTRY:$CI_COMMIT_REF_NAME-$VERSION"
+    - echo $IMAGE_NAME > my_variable.txt
+    - docker build -t $IMAGE_NAME .
+    - docker push $IMAGE_NAME
+  # needs:
+  #   - job: SonarQube-Scan
+  artifacts:
+    paths:
+      - my_variable.txt
+
+
+
+include:
+  # - template: Security/Secret-Detection.gitlab-ci.yml
+  # - template: Jobs/SAST.gitlab-ci.yml
+  # - template: Security/Container-Scanning.gitlab-ci.yml
+
+  - local: '.gitlab-ci-dev.yml'
+    rules:
+      - if: '$CI_COMMIT_REF_NAME == "Dev" || $CI_COMMIT_REF_NAME == "Stg" || $CI_COMMIT_REF_NAME == "main"'
+
+  - local: '.gitlab-ci-stg.yml'
+    rules:
+      - if: '$CI_COMMIT_REF_NAME == "Stg" || $CI_COMMIT_REF_NAME == "main"'
+
+  - local: '.gitlab-ci-prod.yml'
+    rules:
+      - if: '$CI_COMMIT_REF_NAME == "main"'

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shopping
+  template:
+    metadata:
+      labels:
+        app: shopping
+    spec:
+      containers:
+        - name: shopping
+          image: shopping:main # Replace with your image and tag
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8003
+          # volumeMounts:
+          #   - name: shopping-config
+          #     mountPath: /etc/config          
+          # envFrom:
+          #   - configMapRef:
+          #       name: shopping-config
+          #       items:
+          #         - key: shopping-config.json
+          #           path: shopping-config.json
+          # Add volume mounts and resources as needed
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "200m"  # Adjust the CPU limit as needed
+            requests:
+              cpu: "100m"  # Adjust the CPU request as needed
+      # imagePullSecrets:
+      #   - name: regcred-shopping
