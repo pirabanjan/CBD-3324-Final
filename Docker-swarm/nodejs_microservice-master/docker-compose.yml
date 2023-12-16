@@ -1,0 +1,82 @@
+version: "3.8"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+      - rabbitmq_log:/var/log/rabbitmq    
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+  nosql-db:
+    image: mongo
+    ports:
+      - "27017:27017"
+    deploy:
+      replicas: 1
+    volumes:
+      - ./db:/data/db
+    # configs:
+    #   - source: db-config
+    #     target: /docker-entrypoint-initdb.d/db-config
+
+  products:
+    image: pirabanjan/buy-it-products-service:12-10
+    container_name: products
+    ports:
+      - "8002:8002"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    volumes:
+      - .:/app
+      - /app/products/node_modules
+    env_file:
+      - ./products/.env.dev
+
+  shopping:
+    image: pirabanjan/buy-it-shopping-service:12-10
+    container_name: shopping
+    ports:
+      - "8003:8003"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    env_file:
+      - ./shopping/.env.dev
+
+  customer:
+    image: pirabanjan/buy-it-customer-service:12-10
+    container_name: customer
+    ports:
+      - "8001:8001"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    env_file:
+      - ./customer/.env.dev
+
+  nginx-proxy:
+    image: pirabanjan/proxy:12-9
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    ports:
+      - "80:80"
+
+volumes:
+  rabbitmq_data:
+  rabbitmq_log:
+
+# configs:
+#   db-config:
